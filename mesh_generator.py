@@ -90,3 +90,51 @@ def Convert_STL(Vertices, Faces, Path):
         Elements.sort(key=lambda y: y.area, reverse=True)
         Generated_Mesh = trimesh.util.concatenate(Elements[:1])
         Generated_Mesh.export(Path)
+
+##################################################
+#              Function: Map_Mesh                #
+##################################################
+
+def Map_Mesh(Vertices, Faces, Bounds):
+    
+    """
+    
+    Spatial mapping of the obtained mesh to the desired bounds model.
+    
+    Parameters:
+    
+        - Vertices [numpy.Ndarray]: Array containing 'n' vertices of the mesh. Each vertex is represented by its 3D coordinates.
+        - Faces [numpy.Ndarray]: Array containing 'm' triangular faces of the mesh. Each face is defined by indices that point to the vertices array, specifying the vertices that form each triangle.
+        - Bounds [Tuple/List]: A 3 length tuple defining the target spatial extents of the mapped mesh.    
+  
+    Returns:
+    
+        - Vertices [numpy.Ndarray]: Array containing 'n' vertices of the mesh. Each vertex is represented by its 3D coordinates, mapped to the required domain bound.
+        - Faces [numpy.Ndarray]: Array containing 'm' triangular faces of the mesh. Each face is defined by indices that point to the vertices array, specifying the vertices that form each triangle, mapped to the required domain bound.
+    
+    """
+        
+    # Create a trimesh object from raw vertices and faces.
+
+    Mesh = trimesh.Trimesh(vertices=Vertices, faces=Faces, process=False)
+
+    # Translate the mesh so the minimum coordinate is set to zero.
+
+    Min_Coordinates = Mesh.vertices.min(axis=0)
+    Mesh.vertices -= Min_Coordinates
+
+    # Normalize the mesh by dividing each axis by its maximum extent.
+
+    Max_Coordinates = Mesh.vertices.max(axis=0)
+    Mesh.vertices /= Max_Coordinates
+
+    # Map mesh to the bounds.
+
+    Mesh.vertices[:, 0] *= Bounds[0]
+    Mesh.vertices[:, 1] *= Bounds[1]
+    Mesh.vertices[:, 2] *= Bounds[2]
+
+    Vertices = Mesh.vertices.copy()
+    Faces = Mesh.faces.copy()
+
+    return Vertices, Faces

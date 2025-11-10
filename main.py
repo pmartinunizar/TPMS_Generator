@@ -439,14 +439,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             Topology_Type = self.comboBoxTopology.currentText()
             Method_Type = self.comboBoxMethod.currentText()
 
-
             Length_Grid = None
             
             if Length/2 >= Radius:
                 Length_Grid = Length
             else:
                 Length_Grid = Radius*2
+            
+            if Domain_Type == "Cube":
+                Bounds = (Length, Length, Length)
 
+            elif Domain_Type == "Cuboid":
+                Bounds = (Radius, Radius, Length)
+
+            elif Domain_Type == "Sphere":
+                Bounds = (2*Radius, 2*Radius, 2*Radius)
+
+            elif Domain_Type == "Cylinder":
+                Bounds = (2*Radius, 2*Radius, Length)
+
+            elif Domain_Type == "Ring":
+                Bounds = (2*Radius, 2*Radius, Length)
+                
             XDomain, YDomain, ZDomain = Generate_Grid_Domain(Length_Grid, Resolution)
             KX, KY, KZ = Compute_Wave_Functions(NX, NY, NZ, LX, LY, LZ)
             Domain = Generate_3D_Domain(Domain_Type, XDomain, YDomain, ZDomain, Length, Radius, InnerRadius)
@@ -455,15 +469,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 TPMS = Relative_Density(Tpms_Type, Domain, Topology_Type, Density, XDomain, YDomain, ZDomain, KX, KY, KZ)
             elif Method_Type == 'Constant Isovalue':
                 TPMS = Isovalue_Mask(Tpms_Type, Domain, Topology_Type, Density, XDomain, YDomain, ZDomain, KX, KY, KZ)
-            
+    
             Vertices, Faces = Generate_Mesh(TPMS, Length_Grid, Resolution)
+            Vertices, Faces = Map_Mesh(Vertices, Faces, Bounds)
+
             TPMS_Pores = - TPMS  
-            Vertices_Pores, Faces_Pores = Generate_Mesh(TPMS_Pores, Length_Grid, Resolution)    
-                        
-            self.meshData = {'TPMS_Vertices': Vertices, 'TPMS_Faces': Faces, 'Pores_Vertices': Vertices_Pores, 'Pores_Faces': Faces_Pores}
+            
+            Vertices_Pores, Faces_Pores = Generate_Mesh(TPMS_Pores, Length_Grid, Resolution)
+            Vertices_Pores, Faces_Pores = Map_Mesh(Vertices_Pores, Faces_Pores, Bounds)
+
+            self.meshData = {
+                'TPMS_Vertices': Vertices,
+                'TPMS_Faces': Faces,
+                'Pores_Vertices': Vertices_Pores,
+                'Pores_Faces': Faces_Pores
+            }
             
             # Save the data mesh obtained.
-            
+                        
             PolyData = vtkPolyData()
             Points = vtkPoints()
             for vertex in Vertices:
@@ -481,7 +504,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.Mesh_Info(PolyData)
             
             Voxel_Size = np.divide(Length_Grid, (Resolution-1))
-
+            
             # TPMS and pore topology statistics. 
             
             Pore_Analysis(TPMS, Voxel_Size)          
@@ -489,7 +512,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             Curvature(Vertices, Faces)
 
         except ValueError as e:
-            self.Show_Error(str(e))  
+            self.Show_Error(str(e))
     
 ################################################################################################
     
