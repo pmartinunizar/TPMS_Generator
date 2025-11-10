@@ -114,16 +114,12 @@ def Map_Mesh(Vertices, Faces, Bounds):
     
     """
         
-    # Create a trimesh object from raw vertices and faces.
-
     Mesh = trimesh.Trimesh(vertices=Vertices, faces=Faces, process=False)
 
     # Translate the mesh so the minimum coordinate is set to zero.
 
     Min_Coordinates = Mesh.vertices.min(axis=0)
     Mesh.vertices -= Min_Coordinates
-
-    # Normalize the mesh by dividing each axis by its maximum extent.
 
     Max_Coordinates = Mesh.vertices.max(axis=0)
     Mesh.vertices /= Max_Coordinates
@@ -136,5 +132,6 @@ def Map_Mesh(Vertices, Faces, Bounds):
 
     Vertices = Mesh.vertices.copy()
     Faces = Mesh.faces.copy()
+
 
     return Vertices, Faces
