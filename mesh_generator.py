@@ -88,7 +88,7 @@ def Convert_STL(Vertices, Faces, Path):
         Generated_Mesh.export(Path)
     else:
         Elements.sort(key=lambda y: y.area, reverse=True)
-        Generated_Mesh = trimesh.util.concatenate(Elements[:1])
+        Generated_Mesh = trimesh.util.concatenate(Elements[:2])
         Generated_Mesh.export(Path)
 
 ##################################################
@@ -114,12 +114,16 @@ def Map_Mesh(Vertices, Faces, Bounds):
     
     """
         
+    # Create a trimesh object from raw vertices and faces.
+
     Mesh = trimesh.Trimesh(vertices=Vertices, faces=Faces, process=False)
 
     # Translate the mesh so the minimum coordinate is set to zero.
 
     Min_Coordinates = Mesh.vertices.min(axis=0)
     Mesh.vertices -= Min_Coordinates
+
+    # Normalize the mesh by dividing each axis by its maximum extent.
 
     Max_Coordinates = Mesh.vertices.max(axis=0)
     Mesh.vertices /= Max_Coordinates
@@ -132,6 +136,5 @@ def Map_Mesh(Vertices, Faces, Bounds):
 
     Vertices = Mesh.vertices.copy()
     Faces = Mesh.faces.copy()
-
 
     return Vertices, Faces
